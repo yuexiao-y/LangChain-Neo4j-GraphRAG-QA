@@ -1,0 +1,10 @@
+langchain>=0.2
+langchain-openai
+langchain-community
+langchain-experimental
+langchain-text-splitters
+json-repair
+neo4j
+chromadb
+jieba
+numpy
