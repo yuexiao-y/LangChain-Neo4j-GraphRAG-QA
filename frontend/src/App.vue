@@ -2,7 +2,6 @@
   <div class="shell">
     <aside class="sidebar">
       <div class="brand"><div class="brand-mark">G</div><div><strong>GraphRAG</strong><small>设备运维智能问答</small></div></div>
-      <div class="nav-caption">工作台</div>
       <el-menu :default-active="active" class="menu" @select="k => (active = k)">
         <el-menu-item index="qa">问答实验</el-menu-item>
         <el-menu-item index="graph">知识图谱</el-menu-item>

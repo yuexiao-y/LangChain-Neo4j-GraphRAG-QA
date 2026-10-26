@@ -53,7 +53,11 @@ let radar = null
 let bar = null
 
 const MODELS = ['纯大模型', 'LangChain文本RAG', 'LangChain+Neo4j图谱RAG']
-const COLORS = ['#24292f', '#6e7781', '#afb8c1']
+const MODEL_COLORS = {
+  '纯大模型': '#D53E4F',
+  'LangChain文本RAG': '#3288BD',
+  'LangChain+Neo4j图谱RAG': '#5E4FA2',
+}
 
 // 四维评分换算：数值列直接 parseFloat，幻觉程度/推理能力按关键词映射到 10 分制
 function toScore(v, kind) {
@@ -93,8 +97,6 @@ function modelScores(model) {
 function renderCharts() {
   if (!rows.value.length) return
   const series = MODELS.filter(m => rows.value.some(r => r.model === m))
-  const colors = MODELS.map((m, i) => (series.includes(m) ? COLORS[i] : null)).filter(Boolean)
-
   radar.setOption({
     title: { text: '四维能力雷达图（各模型平均分）', left: 'center', textStyle: { fontSize: 13, color: '#1f2328' } },
     legend: { bottom: 0, data: series },
@@ -110,7 +112,7 @@ function renderCharts() {
     },
     series: [{
       type: 'radar',
-      data: series.map((m, i) => ({ name: m, value: modelScores(m), areaStyle: { opacity: 0.15 }, lineStyle: { color: colors[i] }, itemStyle: { color: colors[i] } })),
+      data: series.map(m => ({ name: m, value: modelScores(m), areaStyle: { color: MODEL_COLORS[m], opacity: 0.14 }, lineStyle: { color: MODEL_COLORS[m], width: 2 }, itemStyle: { color: MODEL_COLORS[m] } })),
     }],
   }, true)
 
@@ -121,7 +123,7 @@ function renderCharts() {
     grid: { top: 40, left: 40, right: 16, bottom: 60 },
     xAxis: { type: 'category', data: questions.map(q => `问题${q}`), axisLine: { lineStyle: { color: '#d1d9e0' } }, axisLabel: { color: '#59636e' } },
     yAxis: { type: 'value', max: 10, axisLabel: { color: '#59636e' }, splitLine: { lineStyle: { color: '#f6f8fa' } } },
-    series: series.map((m, i) => ({
+    series: series.map(m => ({
       name: m,
       type: 'bar',
       barGap: 0,
@@ -129,7 +131,7 @@ function renderCharts() {
         const r = rows.value.find(x => x.idx === q && x.model === m)
         return toScore(r && r.accuracy, 'num') ?? 0
       }),
-      itemStyle: { color: colors[i] },
+      itemStyle: { color: MODEL_COLORS[m], borderRadius: [3, 3, 0, 0] },
     })),
   }, true)
 }

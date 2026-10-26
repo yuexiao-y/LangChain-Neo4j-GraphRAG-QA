@@ -48,12 +48,12 @@ import * as echarts from 'echarts'
 import { getGraph } from '../api'
 
 const GROUPS = [
-  { name: '设备与部件', color: '#269d91' },
-  { name: '故障与原因', color: '#d87670' },
-  { name: '操作与维护', color: '#5d85c5' },
-  { name: '参数与规格', color: '#b29150' },
-  { name: '安全与规则', color: '#8e78b7' },
-  { name: '其他知识', color: '#8295a3' },
+  { name: '设备与部件', color: '#3288BD' },
+  { name: '故障与原因', color: '#D53E4F' },
+  { name: '操作与维护', color: '#66C2A5' },
+  { name: '参数与规格', color: '#FDAE61' },
+  { name: '安全与规则', color: '#E6F598' },
+  { name: '其他知识', color: '#5E4FA2' },
 ]
 function groupFor(node) {
   const type = String(node.category || '').replace(/[^a-zA-Z\u4e00-\u9fa5]/g, '').toLowerCase()
@@ -105,32 +105,35 @@ function selectNode(id) {
 }
 watch(selectedId, value => { if (!value) chart?.dispatchAction({ type: 'downplay', seriesIndex: 0 }) })
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
-const shortName = value => value.length > 10 ? value.slice(0, 10) + '…' : value
+const shortName = value => {
+  const text = String(value ?? '')
+  return text.length > 10 ? text.slice(0, 10) + '…' : text
+}
 function render() {
   if (!chart) return
   const { nodes, links } = visible.value
   const nodesById = new Map(nodes.map(node => [node.id, node]))
-  const labels = new Set(nodes.slice(0, nodes.length <= 25 ? nodes.length : 14).map(node => node.id))
+  const labels = new Set(nodes.slice(0, nodes.length <= 65 ? nodes.length : 20).map(node => node.id))
   chart.setOption({
     animationDurationUpdate: 300,
     tooltip: { confine: true, backgroundColor: '#fff', borderColor: '#d1d9e0', padding: 12, textStyle: { color: '#1f2328', fontSize: 12 }, extraCssText: 'max-width:320px;white-space:normal;word-break:break-word;border-radius:6px;', formatter: p => p.dataType === 'edge' ? `${escape(p.data.source)}<br/>→ ${escape(p.data.name)} →<br/>${escape(p.data.target)}` : `<b>${escape(p.name)}</b><br/>${escape(p.data.rawCategory)} · ${degrees.value.get(p.name) || 0} 条关联` },
     series: [{
-      type: 'graph', layout: 'force', left: '10%', right: '10%', top: '12%', bottom: '12%', roam: true, draggable: true, zoom: .65, scaleLimit: { min: .25, max: 4 },
-      force: { repulsion: showAll.value ? 100 : 220, edgeLength: [65, 130], gravity: .16, friction: .65 },
+      type: 'graph', layout: 'force', left: '8%', right: '8%', top: '10%', bottom: '10%', roam: true, draggable: true, zoom: .72, scaleLimit: { min: .25, max: 4 },
+      force: { repulsion: showAll.value ? 95 : 145, edgeLength: [42, 88], gravity: .2, friction: .62 },
       data: nodes.map((node, index) => ({
         id: node.id, name: node.id, rawCategory: node.category,
         x: Math.cos(index * 2.399) * Math.sqrt(index + 1) * 22, y: Math.sin(index * 2.399) * Math.sqrt(index + 1) * 22,
-        symbolSize: Math.min(38, 13 + Math.sqrt(degrees.value.get(node.id) || 0) * 5),
-        itemStyle: { color: groupFor(node).color, borderColor: '#fff', borderWidth: 1.5 },
+        symbolSize: Math.min(44, 10 + Math.sqrt(degrees.value.get(node.id) || 0) * 7),
+        itemStyle: { color: groupFor(node).color, borderColor: '#fff', borderWidth: degrees.value.get(node.id) >= 5 ? 2 : 1.2 },
         label: { show: labels.has(node.id) },
       })),
-      links: links.map(link => ({ ...link, lineStyle: { color: groupFor(nodesById.get(link.source) || {}).color, opacity: .55, width: 1.2 } })),
-      edgeSymbol: ['none', 'arrow'], edgeSymbolSize: 5,
+      links: links.map(link => ({ ...link, lineStyle: { color: groupFor(nodesById.get(link.source) || {}).color, opacity: .58, width: 1 } })),
+      edgeSymbol: ['none', 'arrow'], edgeSymbolSize: [0, 7],
       label: { position: 'bottom', distance: 6, color: '#1f2328', fontSize: 11, backgroundColor: '#ffffffeb', padding: [3, 5], borderRadius: 3, formatter: p => shortName(p.name) },
       labelLayout: { hideOverlap: true },
       lineStyle: { color: '#c6c6c6', width: 1, opacity: .65, curveness: .08 },
-      edgeLabel: { show: false, formatter: p => shortName(p.data.name), fontSize: 10, backgroundColor: '#fff', padding: 3 },
-      emphasis: { focus: 'adjacency', label: { show: true }, edgeLabel: { show: nodes.length < 40 }, lineStyle: { color: '#444444', width: 2, opacity: 1 } },
+      edgeLabel: { show: false },
+      emphasis: { focus: 'adjacency', label: { show: true }, edgeLabel: { show: false }, lineStyle: { color: '#444444', width: 2, opacity: 1 } },
       blur: { itemStyle: { opacity: .18 }, lineStyle: { opacity: .08 }, label: { opacity: .15 } },
     }],
   }, { notMerge: true })
